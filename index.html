@@ -1,0 +1,2968 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+  <title>MenQ</title>
+
+  <!-- =========================================================
+       Tailwind CSS
+       ========================================================= -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a'
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- =========================================================
+       EaseMotion CSS
+       ========================================================= -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/easemotion-css/easemotion.min.css"
+  >
+
+  <!-- =========================================================
+       PyScript
+       ========================================================= -->
+  <link
+    rel="stylesheet"
+    href="https://pyscript.net/releases/2026.7.3/core.css"
+  >
+
+  <script
+    type="module"
+    src="https://pyscript.net/releases/2026.7.3/core.js"
+  ></script>
+
+  <!-- =========================================================
+       HTMX
+       ========================================================= -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js"
+    integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg"
+    crossorigin="anonymous"
+  ></script>
+
+  <!-- =========================================================
+       Alpine.js
+       ========================================================= -->
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"
+  ></script>
+
+  <!-- =========================================================
+       hyperscript
+       ========================================================= -->
+  <script
+    src="https://cdn.jsdelivr.net/gh/bigskysoftware/_hyperscript@0.9.14/dist/_hyperscript.min.js"
+  ></script>
+
+  <!-- =========================================================
+       sql.js
+       ========================================================= -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/sql.js@1.14.2/dist/sql-wasm.js"
+  ></script>
+
+  <!-- =========================================================
+       php.js
+       ========================================================= -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/phpjs@1.2.2/build/npm.js"
+  ></script>
+
+  <style>
+    [x-cloak] {
+      display: none !important;
+    }
+
+    html {
+      background: #f8fafc;
+    }
+
+    html.dark {
+      background: #020617;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .glass {
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .dark .glass {
+      background: rgba(15,23,42,.82);
+    }
+
+    .answer-text {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .progress-bar {
+      transition: width .35s ease;
+    }
+
+    .focus-ring:focus {
+      outline: none;
+      box-shadow:
+        0 0 0 3px rgba(59,130,246,.2),
+        0 0 0 1px rgba(59,130,246,.8);
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body
+  x-data="interviewApp()"
+  x-init="init()"
+  x-cloak
+  class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300"
+>
+
+  <!-- =========================================================
+       HEADER
+       ========================================================= -->
+  <header
+    class="no-print sticky top-0 z-50 border-b border-slate-200/70 dark:border-slate-800/70 glass"
+  >
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+      <div class="flex items-center justify-between gap-4">
+
+        <div class="flex items-center gap-3">
+          <div
+            class="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-500 to-indigo-600 text-white flex items-center justify-center shadow-lg ease-hover-grow"
+          >
+            <span class="text-xl font-black">Q</span>
+          </div>
+
+          <div>
+            <h1 class="font-black text-lg sm:text-xl tracking-tight">
+              MenQ
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Interview Q&A Memorization
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+
+          <button
+            type="button"
+            @click="toggleDark()"
+            class="focus-ring rounded-xl px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+            title="ダークモード"
+          >
+            <span x-text="darkMode ? '☀️' : '🌙'"></span>
+          </button>
+
+          <button
+            type="button"
+            @click="exportBackup()"
+            class="hidden sm:inline-flex focus-ring rounded-xl px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition text-sm"
+          >
+            📦 バックアップ
+          </button>
+
+          <label
+            class="hidden sm:inline-flex cursor-pointer rounded-xl px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition text-sm"
+          >
+            📥 復元
+            <input
+              type="file"
+              accept=".json,application/json"
+              class="hidden"
+              @change="importBackup($event)"
+            >
+          </label>
+
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+  <!-- =========================================================
+       MAIN
+       ========================================================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- =======================================================
+         DASHBOARD
+         ======================================================= -->
+    <section
+      class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 ease-slide-up"
+    >
+
+      <div class="rounded-2xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="text-xs text-slate-500 dark:text-slate-400">
+          総問題数
+        </div>
+        <div
+          class="text-2xl font-black mt-1"
+          x-text="questions.length"
+        ></div>
+      </div>
+
+      <div class="rounded-2xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="text-xs text-slate-500 dark:text-slate-400">
+          正解
+        </div>
+        <div
+          class="text-2xl font-black text-emerald-500 mt-1"
+          x-text="correctCount"
+        ></div>
+      </div>
+
+      <div class="rounded-2xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="text-xs text-slate-500 dark:text-slate-400">
+          要復習
+        </div>
+        <div
+          class="text-2xl font-black text-rose-500 mt-1"
+          x-text="reviewCount"
+        ></div>
+      </div>
+
+      <div class="rounded-2xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="text-xs text-slate-500 dark:text-slate-400">
+          正答率
+        </div>
+        <div
+          class="text-2xl font-black text-brand-500 mt-1"
+          x-text="accuracy + '%'"
+        ></div>
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         TAB NAV
+         ======================================================= -->
+    <nav
+      class="no-print flex gap-2 overflow-x-auto mb-6 pb-1"
+    >
+
+      <button
+        type="button"
+        @click="tab='practice'"
+        :class="tab==='practice'
+          ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20'
+          : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'"
+        class="whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold transition"
+      >
+        🎯 問題演習
+      </button>
+
+      <button
+        type="button"
+        @click="tab='manage'"
+        :class="tab==='manage'
+          ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20'
+          : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'"
+        class="whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold transition"
+      >
+        📝 問題管理
+      </button>
+
+      <button
+        type="button"
+        @click="tab='stats'"
+        :class="tab==='stats'
+          ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20'
+          : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'"
+        class="whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold transition"
+      >
+        📊 学習状況
+      </button>
+
+    </nav>
+
+
+    <!-- =======================================================
+         PRACTICE
+         ======================================================= -->
+    <section
+      x-show="tab==='practice'"
+      x-transition
+      class="ease-fade-in"
+    >
+
+      <div
+        x-show="questions.length === 0"
+        class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-10 text-center"
+      >
+        <div class="text-5xl mb-4">📚</div>
+
+        <h2 class="text-xl font-black mb-2">
+          まだ問題がありません
+        </h2>
+
+        <p class="text-slate-500 dark:text-slate-400 mb-5">
+          「問題管理」から面接質問と模範回答を登録してください。
+        </p>
+
+        <button
+          type="button"
+          @click="tab='manage'"
+          class="rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold px-5 py-3"
+        >
+          問題を登録する
+        </button>
+      </div>
+
+
+      <div
+        x-show="questions.length > 0"
+        class="grid lg:grid-cols-3 gap-6"
+      >
+
+        <!-- QUESTION -->
+        <div class="lg:col-span-2">
+
+          <div
+            class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden"
+          >
+
+            <div
+              class="px-5 sm:px-7 py-5 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-brand-50 to-indigo-50 dark:from-slate-900 dark:to-slate-900"
+            >
+
+              <div class="flex items-center justify-between gap-3">
+
+                <div>
+                  <div class="text-xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">
+                    Interview Question
+                  </div>
+
+                  <div
+                    class="text-sm text-slate-500 dark:text-slate-400 mt-1"
+                    x-text="currentQuestion ? currentQuestion.category : ''"
+                  ></div>
+                </div>
+
+                <span
+                  x-show="currentQuestion"
+                  class="text-xs px-3 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                  x-text="'Q ' + (currentIndex + 1) + ' / ' + questions.length"
+                ></span>
+
+              </div>
+
+            </div>
+
+
+            <div class="p-5 sm:p-7">
+
+              <div
+                x-show="currentQuestion"
+                class="ease-slide-up"
+              >
+
+                <h2
+                  class="text-xl sm:text-2xl lg:text-3xl font-black leading-relaxed"
+                  x-text="currentQuestion?.question"
+                ></h2>
+
+                <div
+                  class="mt-6 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"
+                >
+                  <div
+                    class="progress-bar h-full bg-gradient-to-r from-brand-500 to-indigo-500"
+                    :style="'width:' + progress + '%'"
+                  ></div>
+                </div>
+
+
+                <!-- ANSWER INPUT -->
+                <div class="mt-7">
+
+                  <div class="flex items-center justify-between mb-2">
+                    <label class="font-bold">
+                      あなたの回答
+                    </label>
+
+                    <span
+                      class="text-xs text-slate-400"
+                      x-text="userAnswer.length + ' 文字'"
+                    ></span>
+                  </div>
+
+                  <textarea
+                    id="answerInput"
+                    x-model="userAnswer"
+                    @keydown.ctrl.enter="submitAnswer()"
+                    @keydown.meta.enter="submitAnswer()"
+                    rows="8"
+                    placeholder="面接官に回答するつもりで、できるだけ自分の言葉で入力してください…"
+                    class="focus-ring w-full rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-4 py-4 leading-relaxed"
+                  ></textarea>
+
+                  <div class="flex flex-wrap gap-2 mt-3">
+
+                    <button
+                      type="button"
+                      @click="submitAnswer()"
+                      class="flex-1 sm:flex-none rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-3 transition shadow-lg shadow-brand-500/20"
+                      _="on click add .ease-pulse to me then wait 500ms then remove .ease-pulse from me"
+                    >
+                      ✓ 回答を提出
+                    </button>
+
+                    <button
+                      type="button"
+                      @click="showHint()"
+                      class="rounded-xl bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold px-4 py-3"
+                    >
+                      💡 ヒント
+                    </button>
+
+                    <button
+                      type="button"
+                      @click="skipQuestion()"
+                      class="rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold px-4 py-3"
+                    >
+                      スキップ
+                    </button>
+
+                  </div>
+
+                  <div
+                    x-show="hintVisible"
+                    x-transition
+                    class="mt-4 rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-4 text-sm"
+                  >
+                    <div class="font-bold text-amber-700 dark:text-amber-300 mb-1">
+                      💡 ヒント
+                    </div>
+
+                    <div
+                      class="text-amber-900 dark:text-amber-100"
+                      x-text="currentQuestion?.hint || 'この質問に対して、結論→理由→具体例→結論の順番で答えてみましょう。'"
+                    ></div>
+                  </div>
+
+                </div>
+
+
+                <!-- RESULT -->
+                <div
+                  x-show="submitted"
+                  x-transition
+                  class="mt-7"
+                >
+
+                  <div
+                    class="rounded-2xl p-5 border"
+                    :class="resultClass"
+                  >
+
+                    <div class="flex items-center justify-between gap-4">
+
+                      <div>
+                        <div class="text-sm font-bold opacity-70">
+                          自己評価
+                        </div>
+
+                        <div
+                          class="text-2xl font-black mt-1"
+                          x-text="scoreLabel"
+                        ></div>
+                      </div>
+
+                      <div
+                        class="text-4xl"
+                        x-text="scoreEmoji"
+                      ></div>
+
+                    </div>
+
+                    <div class="mt-5">
+
+                      <div class="text-xs font-bold opacity-70 mb-2">
+                        あなたの回答
+                      </div>
+
+                      <div
+                        class="answer-text rounded-xl bg-white/70 dark:bg-slate-950/40 p-4"
+                        x-text="userAnswer"
+                      ></div>
+
+                    </div>
+
+                  </div>
+
+
+                  <!-- MODEL ANSWER -->
+                  <div class="mt-5 rounded-2xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 p-5">
+
+                    <div class="flex items-center gap-2 mb-3">
+                      <span class="text-xl">📖</span>
+
+                      <div>
+                        <div class="font-black text-emerald-800 dark:text-emerald-300">
+                          模範回答
+                        </div>
+
+                        <div class="text-xs text-emerald-700/70 dark:text-emerald-400/70">
+                          暗記・比較用
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="answer-text leading-relaxed text-emerald-950 dark:text-emerald-100"
+                      x-text="currentQuestion?.answer"
+                    ></div>
+
+                  </div>
+
+
+                  <!-- KEYWORDS -->
+                  <div
+                    x-show="currentQuestion?.keywords"
+                    class="mt-4"
+                  >
+                    <div class="text-xs font-bold text-slate-500 mb-2">
+                      覚えるキーワード
+                    </div>
+
+                    <div class="flex flex-wrap gap-2">
+                      <template
+                        x-for="keyword in (currentQuestion?.keywords || [])"
+                        :key="keyword"
+                      >
+                        <span
+                          class="px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-xs font-bold"
+                          x-text="keyword"
+                        ></span>
+                      </template>
+                    </div>
+                  </div>
+
+
+                  <!-- NEXT -->
+                  <div class="flex flex-wrap gap-2 mt-6">
+
+                    <button
+                      type="button"
+                      @click="nextQuestion()"
+                      class="flex-1 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-black px-5 py-3"
+                    >
+                      次の問題 →
+                    </button>
+
+                    <button
+                      type="button"
+                      @click="newRandomQuestion()"
+                      class="rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold px-5 py-3"
+                    >
+                      🎲 ランダム
+                    </button>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- SIDE -->
+        <aside class="space-y-4">
+
+          <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5">
+
+            <h3 class="font-black mb-4">
+              🎯 学習モード
+            </h3>
+
+            <div class="space-y-2">
+
+              <button
+                type="button"
+                @click="mode='all'; newRandomQuestion()"
+                :class="mode==='all' ? 'bg-brand-600 text-white' : 'bg-slate-100 dark:bg-slate-800'"
+                class="w-full text-left rounded-xl px-4 py-3 font-bold transition"
+              >
+                📚 全問題
+              </button>
+
+              <button
+                type="button"
+                @click="mode='review'; newRandomQuestion()"
+                :class="mode==='review' ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800'"
+                class="w-full text-left rounded-xl px-4 py-3 font-bold transition"
+              >
+                🔥 要復習
+              </button>
+
+              <button
+                type="button"
+                @click="mode='unanswered'; newRandomQuestion()"
+                :class="mode==='unanswered' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800'"
+                class="w-full text-left rounded-xl px-4 py-3 font-bold transition"
+              >
+                🆕 未回答
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <div class="rounded-3xl bg-gradient-to-br from-brand-600 to-indigo-700 text-white p-5 shadow-xl">
+
+            <div class="text-sm opacity-80">
+              今日の学習
+            </div>
+
+            <div
+              class="text-4xl font-black mt-1"
+              x-text="todayCount"
+            ></div>
+
+            <div class="text-sm opacity-80 mt-1">
+              問答に挑戦しました
+            </div>
+
+            <div class="mt-5 h-2 rounded-full bg-white/20 overflow-hidden">
+              <div
+                class="h-full bg-white rounded-full progress-bar"
+                :style="'width:' + Math.min(todayCount * 10,100) + '%'"
+              ></div>
+            </div>
+
+          </div>
+
+
+          <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5">
+
+            <h3 class="font-black mb-3">
+              ⌨️ ショートカット
+            </h3>
+
+            <div class="space-y-2 text-sm text-slate-500 dark:text-slate-400">
+
+              <div class="flex justify-between">
+                <span>回答提出</span>
+                <kbd class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">
+                  Ctrl + Enter
+                </kbd>
+              </div>
+
+              <div class="flex justify-between">
+                <span>次の問題</span>
+                <kbd class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">
+                  →
+                </kbd>
+              </div>
+
+              <div class="flex justify-between">
+                <span>ヒント</span>
+                <kbd class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">
+                  H
+                </kbd>
+              </div>
+
+            </div>
+
+          </div>
+
+        </aside>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         MANAGEMENT
+         ======================================================= -->
+    <section
+      x-show="tab==='manage'"
+      x-transition
+      class="ease-fade-in"
+    >
+
+      <div class="grid lg:grid-cols-3 gap-6">
+
+        <!-- FORM -->
+        <div class="lg:col-span-1">
+
+          <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+
+            <div class="flex items-center justify-between mb-5">
+
+              <div>
+                <h2 class="text-xl font-black">
+                  問題を登録
+                </h2>
+
+                <p class="text-xs text-slate-500 mt-1">
+                  面接質問と模範回答を入力
+                </p>
+              </div>
+
+              <span class="text-2xl">📝</span>
+
+            </div>
+
+
+            <form
+              @submit.prevent="addQuestion()"
+              hx-trigger="submit"
+            >
+
+              <label class="block text-sm font-bold mb-2">
+                質問
+              </label>
+
+              <textarea
+                x-model="form.question"
+                required
+                rows="4"
+                placeholder="例：自己PRをしてください。"
+                class="focus-ring w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-4 py-3 mb-4"
+              ></textarea>
+
+
+              <label class="block text-sm font-bold mb-2">
+                模範回答
+              </label>
+
+              <textarea
+                x-model="form.answer"
+                required
+                rows="7"
+                placeholder="面接で実際に話す回答を入力してください。"
+                class="focus-ring w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-4 py-3 mb-4"
+              ></textarea>
+
+
+              <label class="block text-sm font-bold mb-2">
+                カテゴリ
+              </label>
+
+              <select
+                x-model="form.category"
+                class="focus-ring w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-4 py-3 mb-4"
+              >
+                <option value="自己紹介・自己PR">自己紹介・自己PR</option>
+                <option value="志望動機">志望動機</option>
+                <option value="職務経験">職務経験</option>
+                <option value="強み・弱み">強み・弱み</option>
+                <option value="退職・転職理由">退職・転職理由</option>
+                <option value="キャリア">キャリア</option>
+                <option value="仕事観">仕事観</option>
+                <option value="その他">その他</option>
+              </select>
+
+
+              <label class="block text-sm font-bold mb-2">
+                ヒント
+              </label>
+
+              <input
+                type="text"
+                x-model="form.hint"
+                placeholder="例：結論→具体例→応募先で活かす"
+                class="focus-ring w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-4 py-3 mb-4"
+              >
+
+
+              <label class="block text-sm font-bold mb-2">
+                キーワード
+              </label>
+
+              <input
+                type="text"
+                x-model="form.keywords"
+                placeholder="例：リーダーシップ,改善,成果"
+                class="focus-ring w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-4 py-3 mb-5"
+              >
+
+
+              <button
+                type="submit"
+                class="w-full rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-black px-5 py-3.5 transition shadow-lg shadow-brand-500/20 ease-hover-grow"
+              >
+                ＋ 問題を保存
+              </button>
+
+            </form>
+
+          </div>
+
+        </div>
+
+
+        <!-- LIST -->
+        <div class="lg:col-span-2">
+
+          <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+
+            <div class="p-5 border-b border-slate-200 dark:border-slate-800">
+
+              <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+
+                <div>
+                  <h2 class="text-xl font-black">
+                    登録済み問題
+                  </h2>
+
+                  <p
+                    class="text-xs text-slate-500 mt-1"
+                    x-text="questions.length + ' 問'"
+                  ></p>
+                </div>
+
+                <input
+                  type="search"
+                  x-model="search"
+                  placeholder="問題を検索…"
+                  class="focus-ring rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-4 py-2.5 text-sm"
+                >
+
+              </div>
+
+            </div>
+
+
+            <div class="divide-y divide-slate-200 dark:divide-slate-800">
+
+              <template
+                x-for="question in filteredQuestions"
+                :key="question.id"
+              >
+
+                <article class="p-5 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+
+                  <div class="flex items-start gap-4">
+
+                    <div
+                      class="shrink-0 w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-950 text-brand-600 dark:text-brand-300 flex items-center justify-center font-black"
+                      x-text="question.id"
+                    ></div>
+
+                    <div class="min-w-0 flex-1">
+
+                      <div class="flex flex-wrap items-center gap-2 mb-2">
+
+                        <span
+                          class="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300"
+                          x-text="question.category"
+                        ></span>
+
+                        <span
+                          x-show="question.lastScore === 'correct'"
+                          class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300"
+                        >
+                          ✓ 正解
+                        </span>
+
+                        <span
+                          x-show="question.lastScore === 'wrong'"
+                          class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300"
+                        >
+                          要復習
+                        </span>
+
+                      </div>
+
+                      <h3
+                        class="font-black leading-relaxed"
+                        x-text="question.question"
+                      ></h3>
+
+                      <p
+                        class="mt-2 text-sm text-slate-500 dark:text-slate-400 line-clamp-2"
+                        x-text="question.answer"
+                      ></p>
+
+                      <div class="flex flex-wrap gap-2 mt-3">
+
+                        <template
+                          x-for="keyword in question.keywords"
+                          :key="keyword"
+                        >
+                          <span
+                            class="text-xs px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                            x-text="keyword"
+                          ></span>
+                        </template>
+
+                      </div>
+
+                    </div>
+
+                    <button
+                      type="button"
+                      @click="deleteQuestion(question.id)"
+                      class="shrink-0 w-10 h-10 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition"
+                      title="削除"
+                    >
+                      🗑️
+                    </button>
+
+                  </div>
+
+                </article>
+
+              </template>
+
+
+              <div
+                x-show="filteredQuestions.length === 0"
+                class="p-10 text-center text-slate-500"
+              >
+                該当する問題がありません。
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         STATS
+         ======================================================= -->
+    <section
+      x-show="tab==='stats'"
+      x-transition
+      class="ease-fade-in"
+    >
+
+      <div class="grid md:grid-cols-2 gap-6">
+
+        <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6">
+
+          <h2 class="text-xl font-black mb-5">
+            📊 学習状況
+          </h2>
+
+          <div class="space-y-5">
+
+            <div>
+              <div class="flex justify-between text-sm mb-2">
+                <span>正答率</span>
+                <strong x-text="accuracy + '%'"></strong>
+              </div>
+
+              <div class="h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div
+                  class="h-full rounded-full bg-emerald-500 progress-bar"
+                  :style="'width:' + accuracy + '%'"
+                ></div>
+              </div>
+            </div>
+
+
+            <div>
+              <div class="flex justify-between text-sm mb-2">
+                <span>回答済み</span>
+                <strong x-text="answeredCount + ' / ' + questions.length"></strong>
+              </div>
+
+              <div class="h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div
+                  class="h-full rounded-full bg-brand-500 progress-bar"
+                  :style="'width:' + answeredPercentage + '%'"
+                ></div>
+              </div>
+            </div>
+
+
+            <div>
+              <div class="flex justify-between text-sm mb-2">
+                <span>要復習</span>
+                <strong x-text="reviewCount + ' 問'"></strong>
+              </div>
+
+              <div class="h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div
+                  class="h-full rounded-full bg-rose-500 progress-bar"
+                  :style="'width:' + reviewPercentage + '%'"
+                ></div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6">
+
+          <h2 class="text-xl font-black mb-5">
+            🧠 暗記のコツ
+          </h2>
+
+          <div class="space-y-4">
+
+            <div class="flex gap-3">
+              <span class="text-xl">1️⃣</span>
+              <div>
+                <div class="font-bold">質問だけを見る</div>
+                <div class="text-sm text-slate-500 mt-1">
+                  まず模範回答を隠した状態で、自分の言葉で答えます。
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-3">
+              <span class="text-xl">2️⃣</span>
+              <div>
+                <div class="font-bold">キーワードを思い出す</div>
+                <div class="text-sm text-slate-500 mt-1">
+                  一字一句ではなく、回答の骨格を覚えます。
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-3">
+              <span class="text-xl">3️⃣</span>
+              <div>
+                <div class="font-bold">模範回答と比較</div>
+                <div class="text-sm text-slate-500 mt-1">
+                  足りないポイントを確認して要復習にします。
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-3">
+              <span class="text-xl">4️⃣</span>
+              <div>
+                <div class="font-bold">ランダムで繰り返す</div>
+                <div class="text-sm text-slate-500 mt-1">
+                  出題順を固定しないことで、実際の面接に近い練習ができます。
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- CATEGORY STATS -->
+      <div class="mt-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6">
+
+        <h2 class="text-xl font-black mb-5">
+          📚 カテゴリ別
+        </h2>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+
+          <template
+            x-for="item in categoryStats"
+            :key="item.category"
+          >
+
+            <div class="rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-4">
+
+              <div
+                class="text-sm font-bold truncate"
+                x-text="item.category"
+              ></div>
+
+              <div
+                class="text-2xl font-black mt-1"
+                x-text="item.count"
+              ></div>
+
+              <div class="text-xs text-slate-500">
+                問
+              </div>
+
+            </div>
+
+          </template>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =========================================================
+       TOAST
+       ========================================================= -->
+  <div
+    x-show="toast.visible"
+    x-transition
+    class="no-print fixed bottom-5 left-1/2 -translate-x-1/2 z-[100] max-w-[90vw]"
+  >
+    <div
+      class="rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-2xl px-5 py-3 font-bold text-sm"
+      x-text="toast.message"
+    ></div>
+  </div>
+
+
+  <!-- =========================================================
+       PYTHON / PyScript
+       ========================================================= -->
+  <script type="py">
+from pyscript import window
+
+def normalize_text(value):
+    """
+    Python側で文字列を正規化。
+    JavaScript側から window.PyInterviewNormalize として呼び出す。
+    """
+    if value is None:
+        return ""
+
+    text = str(value)
+
+    # 全角スペースを半角へ
+    text = text.replace("　", " ")
+
+    # 改行・連続空白を整理
+    text = " ".join(text.split())
+
+    return text.strip()
+
+def keyword_match(answer, keywords):
+    """
+    回答にキーワードがどの程度含まれているかを判定。
+    """
+    answer = normalize_text(answer).lower()
+
+    if not keywords:
+        return 0
+
+    matched = 0
+
+    for keyword in keywords:
+        key = normalize_text(keyword).lower()
+
+        if key and key in answer:
+            matched += 1
+
+    return round((matched / len(keywords)) * 100)
+
+window.PyInterviewNormalize = normalize_text
+window.PyInterviewKeywordMatch = keyword_match
+  </script>
+
+
+  <!-- =========================================================
+       JAVASCRIPT APPLICATION
+       ========================================================= -->
+  <script>
+
+    /*
+     * ============================================================
+     * アプリケーション本体
+     * ============================================================
+     */
+
+    function interviewApp() {
+
+      return {
+
+        /* --------------------------------------------------------
+           State
+           -------------------------------------------------------- */
+
+        tab: 'practice',
+
+        mode: 'all',
+
+        darkMode: false,
+
+        questions: [],
+
+        currentQuestion: null,
+
+        currentIndex: 0,
+
+        userAnswer: '',
+
+        submitted: false,
+
+        hintVisible: false,
+
+        search: '',
+
+        sqlDb: null,
+
+        sqlReady: false,
+
+        toast: {
+          visible: false,
+          message: ''
+        },
+
+        todayCount: 0,
+
+        form: {
+          question: '',
+          answer: '',
+          category: '自己紹介・自己PR',
+          hint: '',
+          keywords: ''
+        },
+
+
+        /* --------------------------------------------------------
+           Initialization
+           -------------------------------------------------------- */
+
+        async init() {
+
+          this.loadDarkMode();
+
+          await this.initSQLite();
+
+          this.loadQuestions();
+
+          this.loadTodayCount();
+
+          this.bindKeyboard();
+
+          if (this.questions.length > 0) {
+            this.newRandomQuestion();
+          }
+
+          this.$nextTick(() => {
+            this.showToast('アプリを読み込みました');
+          });
+
+        },
+
+
+        /* --------------------------------------------------------
+           SQLite
+           -------------------------------------------------------- */
+
+        async initSQLite() {
+
+          try {
+
+            const SQL = await initSqlJs({
+              locateFile: function(file) {
+                return 'https://cdn.jsdelivr.net/npm/sql.js@1.14.2/dist/' + file;
+              }
+            });
+
+            this.sqlDb = new SQL.Database();
+
+            this.sqlDb.run(`
+              CREATE TABLE IF NOT EXISTS questions (
+                id INTEGER PRIMARY KEY,
+                question TEXT NOT NULL,
+                answer TEXT NOT NULL,
+                category TEXT,
+                hint TEXT,
+                keywords TEXT,
+                last_score TEXT,
+                attempts INTEGER DEFAULT 0,
+                correct_count INTEGER DEFAULT 0,
+                created_at TEXT,
+                updated_at TEXT
+              );
+            `);
+
+            this.sqlDb.run(`
+              CREATE TABLE IF NOT EXISTS study_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                question_id INTEGER,
+                score TEXT,
+                created_at TEXT
+              );
+            `);
+
+            this.sqlReady = true;
+
+          } catch (error) {
+
+            console.error('SQLite initialization error:', error);
+
+            this.showToast(
+              'SQLiteの初期化に失敗しました。LocalStorageモードで続行します。'
+            );
+
+          }
+
+        },
+
+
+        /* --------------------------------------------------------
+           Load Questions
+           -------------------------------------------------------- */
+
+        loadQuestions() {
+
+          const stored = localStorage.getItem(
+            'interview_qa_sqlite_v1'
+          );
+
+          if (!stored) {
+
+            this.questions = [];
+
+            return;
+
+          }
+
+          try {
+
+            const bytes = this.base64ToUint8Array(stored);
+
+            if (this.sqlDb) {
+
+              const db = new SQL.Database(bytes);
+
+              const result = db.exec(`
+                SELECT
+                  id,
+                  question,
+                  answer,
+                  category,
+                  hint,
+                  keywords,
+                  last_score,
+                  attempts,
+                  correct_count,
+                  created_at,
+                  updated_at
+                FROM questions
+                ORDER BY id ASC
+              `);
+
+              if (result.length > 0) {
+
+                this.questions =
+                  result[0].values.map(row => {
+
+                    return {
+                      id: row[0],
+                      question: row[1],
+                      answer: row[2],
+                      category: row[3] || 'その他',
+                      hint: row[4] || '',
+                      keywords: row[5]
+                        ? JSON.parse(row[5])
+                        : [],
+                      lastScore: row[6] || null,
+                      attempts: Number(row[7] || 0),
+                      correctCount: Number(row[8] || 0),
+                      createdAt: row[9],
+                      updatedAt: row[10]
+                    };
+
+                  });
+
+              }
+
+              db.close();
+
+            }
+
+          } catch (error) {
+
+            console.error(error);
+
+            /*
+             * SQLiteデータが壊れていた場合のフォールバック
+             */
+            const json = localStorage.getItem(
+              'interview_qa_json_fallback'
+            );
+
+            if (json) {
+
+              try {
+                this.questions = JSON.parse(json);
+              } catch (_) {
+                this.questions = [];
+              }
+
+            }
+
+          }
+
+        },
+
+
+        /* --------------------------------------------------------
+           Save SQLite to LocalStorage
+           -------------------------------------------------------- */
+
+        saveDatabase() {
+
+          if (!this.sqlDb) {
+
+            localStorage.setItem(
+              'interview_qa_json_fallback',
+              JSON.stringify(this.questions)
+            );
+
+            return;
+
+          }
+
+          const binary = this.sqlDb.export();
+
+          const base64 = this.uint8ArrayToBase64(binary);
+
+          localStorage.setItem(
+            'interview_qa_sqlite_v1',
+            base64
+          );
+
+          /*
+           * JSONフォールバックも保存。
+           * SQLiteの読み込みに失敗した場合に利用する。
+           */
+          localStorage.setItem(
+            'interview_qa_json_fallback',
+            JSON.stringify(this.questions)
+          );
+
+        },
+
+
+        /* --------------------------------------------------------
+           Add Question
+           -------------------------------------------------------- */
+
+        addQuestion() {
+
+          const q =
+            this.normalize(
+              this.form.question
+            );
+
+          const a =
+            this.normalize(
+              this.form.answer
+            );
+
+          if (!q || !a) {
+
+            this.showToast(
+              '質問と模範回答を入力してください'
+            );
+
+            return;
+
+          }
+
+          const keywords =
+            this.form.keywords
+              .split(',')
+              .map(v => this.normalize(v))
+              .filter(Boolean);
+
+
+          /*
+           * php.jsが読み込まれている環境では
+           * PHP風の trim 相当処理も利用可能。
+           */
+          let cleanQuestion = q;
+
+          try {
+
+            if (
+              typeof window.trim === 'function'
+            ) {
+              cleanQuestion =
+                window.trim(q);
+            }
+
+          } catch (_) {}
+
+
+          const now =
+            new Date().toISOString();
+
+
+          const nextId =
+            this.questions.length > 0
+              ? Math.max(
+                  ...this.questions.map(q => Number(q.id))
+                ) + 1
+              : 1;
+
+
+          const question = {
+
+            id: nextId,
+
+            question: cleanQuestion,
+
+            answer: a,
+
+            category:
+              this.form.category || 'その他',
+
+            hint:
+              this.normalize(
+                this.form.hint
+              ),
+
+            keywords,
+
+            lastScore: null,
+
+            attempts: 0,
+
+            correctCount: 0,
+
+            createdAt: now,
+
+            updatedAt: now
+
+          };
+
+
+          this.questions.push(question);
+
+
+          /*
+           * SQLite INSERT
+           */
+          if (this.sqlDb) {
+
+            this.sqlDb.run(
+              `
+              INSERT INTO questions (
+                id,
+                question,
+                answer,
+                category,
+                hint,
+                keywords,
+                last_score,
+                attempts,
+                correct_count,
+                created_at,
+                updated_at
+              )
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              `,
+              [
+                question.id,
+                question.question,
+                question.answer,
+                question.category,
+                question.hint,
+                JSON.stringify(question.keywords),
+                null,
+                0,
+                0,
+                question.createdAt,
+                question.updatedAt
+              ]
+            );
+
+          }
+
+
+          this.saveDatabase();
+
+
+          /*
+           * Clear form
+           */
+          this.form = {
+
+            question: '',
+
+            answer: '',
+
+            category: '自己紹介・自己PR',
+
+            hint: '',
+
+            keywords: ''
+
+          };
+
+
+          this.showToast(
+            '問題を保存しました'
+          );
+
+
+          /*
+           * 問題演習へ
+           */
+          if (this.questions.length === 1) {
+
+            this.tab = 'practice';
+
+            this.newRandomQuestion();
+
+          }
+
+        },
+
+
+        /* --------------------------------------------------------
+           Delete Question
+           -------------------------------------------------------- */
+
+        deleteQuestion(id) {
+
+          const question =
+            this.questions.find(
+              q => q.id === id
+            );
+
+          if (!question) return;
+
+
+          if (
+            !confirm(
+              'この問題を削除しますか？\n\n' +
+              question.question
+            )
+          ) {
+            return;
+          }
+
+
+          if (this.sqlDb) {
+
+            this.sqlDb.run(
+              'DELETE FROM questions WHERE id = ?',
+              [id]
+            );
+
+            this.sqlDb.run(
+              'DELETE FROM study_log WHERE question_id = ?',
+              [id]
+            );
+
+          }
+
+
+          this.questions =
+            this.questions.filter(
+              q => q.id !== id
+            );
+
+
+          this.saveDatabase();
+
+
+          if (
+            this.currentQuestion &&
+            this.currentQuestion.id === id
+          ) {
+
+            this.currentQuestion = null;
+
+            if (this.questions.length > 0) {
+              this.newRandomQuestion();
+            }
+
+          }
+
+
+          this.showToast(
+            '問題を削除しました'
+          );
+
+        },
+
+
+        /* --------------------------------------------------------
+           Random Question
+           -------------------------------------------------------- */
+
+        newRandomQuestion() {
+
+          let pool = [...this.questions];
+
+
+          if (this.mode === 'review') {
+
+            pool =
+              pool.filter(
+                q => q.lastScore === 'wrong'
+              );
+
+          }
+
+
+          if (this.mode === 'unanswered') {
+
+            pool =
+              pool.filter(
+                q => !q.lastScore
+              );
+
+          }
+
+
+          if (pool.length === 0) {
+
+            if (this.mode === 'review') {
+
+              this.showToast(
+                '要復習の問題はありません'
+              );
+
+            } else if (
+              this.mode === 'unanswered'
+            ) {
+
+              this.showToast(
+                '未回答の問題はありません'
+              );
+
+            }
+
+            return;
+
+          }
+
+
+          /*
+           * 直前と同じ問題を避ける
+           */
+          if (
+            pool.length > 1 &&
+            this.currentQuestion
+          ) {
+
+            pool =
+              pool.filter(
+                q => q.id !== this.currentQuestion.id
+              );
+
+          }
+
+
+          const index =
+            Math.floor(
+              Math.random() * pool.length
+            );
+
+
+          const selected =
+            pool[index];
+
+
+          this.currentQuestion =
+            selected;
+
+
+          this.currentIndex =
+            this.questions.findIndex(
+              q => q.id === selected.id
+            );
+
+
+          this.userAnswer = '';
+
+          this.submitted = false;
+
+          this.hintVisible = false;
+
+
+          this.$nextTick(() => {
+
+            const input =
+              document.getElementById(
+                'answerInput'
+              );
+
+            if (input) {
+              input.focus();
+            }
+
+          });
+
+        },
+
+
+        /* --------------------------------------------------------
+           Submit Answer
+           -------------------------------------------------------- */
+
+        submitAnswer() {
+
+          if (!this.currentQuestion) {
+
+            this.showToast(
+              '問題を選択してください'
+            );
+
+            return;
+
+          }
+
+
+          const answer =
+            this.normalize(
+              this.userAnswer
+            );
+
+
+          if (!answer) {
+
+            this.showToast(
+              '回答を入力してください'
+            );
+
+            return;
+
+          }
+
+
+          /*
+           * Python側の正規化関数が存在すれば利用
+           */
+          let normalizedUser =
+            answer;
+
+          try {
+
+            if (
+              typeof window.PyInterviewNormalize ===
+              'function'
+            ) {
+
+              normalizedUser =
+                window.PyInterviewNormalize(
+                  answer
+                );
+
+            }
+
+          } catch (_) {}
+
+
+          /*
+           * キーワード一致率
+           */
+          let keywordScore = 0;
+
+          try {
+
+            if (
+              typeof window.PyInterviewKeywordMatch ===
+              'function'
+            ) {
+
+              keywordScore =
+                window.PyInterviewKeywordMatch(
+                  normalizedUser,
+                  this.currentQuestion.keywords
+                );
+
+            }
+
+          } catch (_) {}
+
+
+          /*
+           * 自己評価を補助する簡易スコア
+           *
+           * 50%以上キーワード一致なら「正解候補」。
+           * キーワードがない場合は文字数も参考にする。
+           */
+          let score;
+
+          if (
+            this.currentQuestion.keywords.length > 0
+          ) {
+
+            score =
+              keywordScore >= 50
+                ? 'correct'
+                : 'wrong';
+
+          } else {
+
+            score =
+              answer.length >=
+              Math.max(
+                20,
+                Math.floor(
+                  this.currentQuestion.answer.length * 0.2
+                )
+              )
+                ? 'correct'
+                : 'wrong';
+
+          }
+
+
+          /*
+           * 問題オブジェクト更新
+           */
+          const target =
+            this.questions.find(
+              q => q.id === this.currentQuestion.id
+            );
+
+
+          if (target) {
+
+            target.lastScore =
+              score;
+
+            target.attempts =
+              Number(target.attempts || 0) + 1;
+
+            if (score === 'correct') {
+
+              target.correctCount =
+                Number(target.correctCount || 0) + 1;
+
+            }
+
+            target.updatedAt =
+              new Date().toISOString();
+
+          }
+
+
+          /*
+           * SQLite更新
+           */
+          if (this.sqlDb) {
+
+            this.sqlDb.run(
+              `
+              UPDATE questions
+              SET
+                last_score = ?,
+                attempts = ?,
+                correct_count = ?,
+                updated_at = ?
+              WHERE id = ?
+              `,
+              [
+                target.lastScore,
+                target.attempts,
+                target.correctCount,
+                target.updatedAt,
+                target.id
+              ]
+            );
+
+
+            this.sqlDb.run(
+              `
+              INSERT INTO study_log (
+                question_id,
+                score,
+                created_at
+              )
+              VALUES (?, ?, ?)
+              `,
+              [
+                target.id,
+                score,
+                new Date().toISOString()
+              ]
+            );
+
+          }
+
+
+          this.saveDatabase();
+
+
+          /*
+           * 今日の学習数
+           */
+          this.todayCount++;
+
+          localStorage.setItem(
+            'interview_today_count',
+            String(this.todayCount)
+          );
+
+
+          this.submitted = true;
+
+
+          this.showToast(
+            score === 'correct'
+              ? '回答を記録しました。よくできました！'
+              : '回答を記録しました。模範回答を復習しましょう。'
+          );
+
+        },
+
+
+        /* --------------------------------------------------------
+           Next
+           -------------------------------------------------------- */
+
+        nextQuestion() {
+
+          this.newRandomQuestion();
+
+        },
+
+
+        /* --------------------------------------------------------
+           Skip
+           -------------------------------------------------------- */
+
+        skipQuestion() {
+
+          this.newRandomQuestion();
+
+        },
+
+
+        /* --------------------------------------------------------
+           Hint
+           -------------------------------------------------------- */
+
+        showHint() {
+
+          this.hintVisible =
+            !this.hintVisible;
+
+        },
+
+
+        /* --------------------------------------------------------
+           Normalize
+           -------------------------------------------------------- */
+
+        normalize(value) {
+
+          if (value === null ||
+              value === undefined) {
+            return '';
+          }
+
+          return String(value)
+            .replace(/　/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        },
+
+
+        /* --------------------------------------------------------
+           Dark mode
+           -------------------------------------------------------- */
+
+        loadDarkMode() {
+
+          const saved =
+            localStorage.getItem(
+              'interview_dark_mode'
+            );
+
+          this.darkMode =
+            saved === 'true' ||
+            (
+              saved === null &&
+              window.matchMedia &&
+              window.matchMedia(
+                '(prefers-color-scheme: dark)'
+              ).matches
+            );
+
+
+          this.applyDarkMode();
+
+        },
+
+
+        toggleDark() {
+
+          this.darkMode =
+            !this.darkMode;
+
+          localStorage.setItem(
+            'interview_dark_mode',
+            String(this.darkMode)
+          );
+
+          this.applyDarkMode();
+
+        },
+
+
+        applyDarkMode() {
+
+          document.documentElement.classList.toggle(
+            'dark',
+            this.darkMode
+          );
+
+        },
+
+
+        /* --------------------------------------------------------
+           Today
+           -------------------------------------------------------- */
+
+        loadTodayCount() {
+
+          const key =
+            'interview_today_' +
+            new Date().toISOString().slice(0,10);
+
+
+          const count =
+            localStorage.getItem(key);
+
+
+          this.todayCount =
+            Number(count || 0);
+
+          this.todayStorageKey =
+            key;
+
+        },
+
+
+        /* --------------------------------------------------------
+           Keyboard
+           -------------------------------------------------------- */
+
+        bindKeyboard() {
+
+          window.addEventListener(
+            'keydown',
+            event => {
+
+              /*
+               * 入力欄にフォーカスしている場合は
+               * Hなどを横取りしない。
+               */
+              const tag =
+                document.activeElement?.tagName;
+
+              const editing =
+                tag === 'INPUT' ||
+                tag === 'TEXTAREA' ||
+                tag === 'SELECT';
+
+
+              if (
+                !editing &&
+                event.key === 'h'
+              ) {
+
+                event.preventDefault();
+
+                this.showHint();
+
+              }
+
+
+              if (
+                !editing &&
+                event.key === 'ArrowRight'
+              ) {
+
+                event.preventDefault();
+
+                if (this.submitted) {
+                  this.nextQuestion();
+                }
+
+              }
+
+            }
+          );
+
+        },
+
+
+        /* --------------------------------------------------------
+           Toast
+           -------------------------------------------------------- */
+
+        showToast(message) {
+
+          this.toast.message =
+            message;
+
+          this.toast.visible =
+            true;
+
+
+          clearTimeout(
+            this._toastTimer
+          );
+
+
+          this._toastTimer =
+            setTimeout(
+              () => {
+                this.toast.visible = false;
+              },
+              2200
+            );
+
+        },
+
+
+        /* --------------------------------------------------------
+           Backup
+           -------------------------------------------------------- */
+
+        exportBackup() {
+
+          const backup = {
+
+            version: 1,
+
+            exportedAt:
+              new Date().toISOString(),
+
+            questions:
+              this.questions
+
+          };
+
+
+          const blob =
+            new Blob(
+              [
+                JSON.stringify(
+                  backup,
+                  null,
+                  2
+                )
+              ],
+              {
+                type: 'application/json'
+              }
+            );
+
+
+          const url =
+            URL.createObjectURL(blob);
+
+
+          const a =
+            document.createElement('a');
+
+
+          a.href = url;
+
+          a.download =
+            'interview-qa-backup-' +
+            new Date()
+              .toISOString()
+              .slice(0,10) +
+            '.json';
+
+
+          a.click();
+
+
+          URL.revokeObjectURL(url);
+
+
+          this.showToast(
+            'バックアップを作成しました'
+          );
+
+        },
+
+
+        /* --------------------------------------------------------
+           Import
+           -------------------------------------------------------- */
+
+        importBackup(event) {
+
+          const file =
+            event.target.files?.[0];
+
+
+          if (!file) return;
+
+
+          const reader =
+            new FileReader();
+
+
+          reader.onload =
+            () => {
+
+              try {
+
+                const data =
+                  JSON.parse(
+                    reader.result
+                  );
+
+
+                if (
+                  !data.questions ||
+                  !Array.isArray(data.questions)
+                ) {
+
+                  throw new Error(
+                    'Invalid backup'
+                  );
+
+                }
+
+
+                if (
+                  !confirm(
+                    '現在の問題をバックアップデータで置き換えますか？'
+                  )
+                ) {
+
+                  return;
+
+                }
+
+
+                /*
+                 * DBを再構築
+                 */
+                if (this.sqlDb) {
+
+                  this.sqlDb.run(
+                    'DELETE FROM questions'
+                  );
+
+                  this.sqlDb.run(
+                    'DELETE FROM study_log'
+                  );
+
+
+                  for (
+                    const q of data.questions
+                  ) {
+
+                    this.sqlDb.run(
+                      `
+                      INSERT INTO questions (
+                        id,
+                        question,
+                        answer,
+                        category,
+                        hint,
+                        keywords,
+                        last_score,
+                        attempts,
+                        correct_count,
+                        created_at,
+                        updated_at
+                      )
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      `,
+                      [
+                        q.id,
+                        q.question,
+                        q.answer,
+                        q.category || 'その他',
+                        q.hint || '',
+                        JSON.stringify(
+                          q.keywords || []
+                        ),
+                        q.lastScore || null,
+                        q.attempts || 0,
+                        q.correctCount || 0,
+                        q.createdAt ||
+                          new Date().toISOString(),
+                        q.updatedAt ||
+                          new Date().toISOString()
+                      ]
+                    );
+
+                  }
+
+                }
+
+
+                this.questions =
+                  data.questions;
+
+
+                this.saveDatabase();
+
+
+                this.newRandomQuestion();
+
+
+                this.showToast(
+                  'バックアップを復元しました'
+                );
+
+
+              } catch (error) {
+
+                console.error(error);
+
+                this.showToast(
+                  'バックアップの読み込みに失敗しました'
+                );
+
+              }
+
+            };
+
+
+          reader.readAsText(file);
+
+          event.target.value = '';
+
+        },
+
+
+        /* --------------------------------------------------------
+           Base64
+           -------------------------------------------------------- */
+
+        uint8ArrayToBase64(bytes) {
+
+          let binary = '';
+
+          const chunkSize = 0x8000;
+
+
+          for (
+            let i = 0;
+            i < bytes.length;
+            i += chunkSize
+          ) {
+
+            binary += String.fromCharCode(
+              ...bytes.subarray(
+                i,
+                Math.min(
+                  i + chunkSize,
+                  bytes.length
+                )
+              )
+            );
+
+          }
+
+
+          return btoa(binary);
+
+        },
+
+
+        base64ToUint8Array(base64) {
+
+          const binary =
+            atob(base64);
+
+
+          const bytes =
+            new Uint8Array(
+              binary.length
+            );
+
+
+          for (
+            let i = 0;
+            i < binary.length;
+            i++
+          ) {
+
+            bytes[i] =
+              binary.charCodeAt(i);
+
+          }
+
+
+          return bytes;
+
+        },
+
+
+        /* --------------------------------------------------------
+           Computed
+           -------------------------------------------------------- */
+
+        get filteredQuestions() {
+
+          const keyword =
+            this.search
+              .toLowerCase()
+              .trim();
+
+
+          if (!keyword) {
+
+            return this.questions;
+
+          }
+
+
+          return this.questions.filter(
+            q => {
+
+              const text =
+                [
+                  q.question,
+                  q.answer,
+                  q.category,
+                  ...(q.keywords || [])
+                ]
+                  .join(' ')
+                  .toLowerCase();
+
+
+              return text.includes(
+                keyword
+              );
+
+            }
+          );
+
+        },
+
+
+        get correctCount() {
+
+          return this.questions.filter(
+            q => q.lastScore === 'correct'
+          ).length;
+
+        },
+
+
+        get reviewCount() {
+
+          return this.questions.filter(
+            q => q.lastScore === 'wrong'
+          ).length;
+
+        },
+
+
+        get answeredCount() {
+
+          return this.questions.filter(
+            q => q.lastScore
+          ).length;
+
+        },
+
+
+        get accuracy() {
+
+          if (!this.answeredCount) {
+            return 0;
+          }
+
+
+          return Math.round(
+            (
+              this.correctCount /
+              this.answeredCount
+            ) * 100
+          );
+
+        },
+
+
+        get answeredPercentage() {
+
+          if (!this.questions.length) {
+            return 0;
+          }
+
+
+          return Math.round(
+            (
+              this.answeredCount /
+              this.questions.length
+            ) * 100
+          );
+
+        },
+
+
+        get reviewPercentage() {
+
+          if (!this.questions.length) {
+            return 0;
+          }
+
+
+          return Math.round(
+            (
+              this.reviewCount /
+              this.questions.length
+            ) * 100
+          );
+
+        },
+
+
+        get progress() {
+
+          if (!this.questions.length) {
+            return 0;
+          }
+
+
+          return Math.round(
+            (
+              (this.currentIndex + 1) /
+              this.questions.length
+            ) * 100
+          );
+
+        },
+
+
+        get resultClass() {
+
+          if (!this.currentQuestion) {
+            return '';
+          }
+
+
+          return this.currentQuestion.lastScore ===
+            'correct'
+
+            ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-100'
+
+            : 'border-rose-300 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/30 text-rose-900 dark:text-rose-100';
+
+        },
+
+
+        get scoreLabel() {
+
+          return this.currentQuestion?.lastScore ===
+            'correct'
+
+            ? '正解候補！'
+
+            : '要復習';
+
+        },
+
+
+        get scoreEmoji() {
+
+          return this.currentQuestion?.lastScore ===
+            'correct'
+
+            ? '🎉'
+            : '🔄';
+
+        },
+
+
+        get categoryStats() {
+
+          const map = {};
+
+
+          for (
+            const q of this.questions
+          ) {
+
+            const category =
+              q.category || 'その他';
+
+
+            if (!map[category]) {
+              map[category] = 0;
+            }
+
+
+            map[category]++;
+
+          }
+
+
+          return Object.entries(map)
+            .map(
+              ([category, count]) => ({
+                category,
+                count
+              })
+            )
+            .sort(
+              (a, b) =>
+                b.count - a.count
+            );
+
+        }
+
+      };
+
+    }
+
+
+    /*
+     * ============================================================
+     * 初期サンプルデータ
+     * ============================================================
+     *
+     * 初回起動時に問題が空の場合だけ利用できます。
+     * 下の seedSampleQuestions() を呼び出すと、
+     * 面接練習用のサンプル問題を登録できます。
+     *
+     * デフォルトでは勝手に問題を追加しないようにしています。
+     * ============================================================
+     */
+
+    function seedSampleQuestions() {
+
+      const app =
+        document.querySelector(
+          '[x-data]'
+        )?._x_dataStack?.[0];
+
+
+      if (!app) return;
+
+
+      const samples = [
+
+        {
+          question:
+            '自己PRをしてください。',
+
+          answer:
+            '私の強みは、課題を整理して改善につなげる力です。前職では業務の中で発生していた非効率な作業を洗い出し、手順を見直しました。その結果、作業時間を削減することができました。御社でも課題を見つけるだけでなく、周囲と協力しながら具体的な改善につなげていきたいと考えています。',
+
+          category:
+            '自己紹介・自己PR',
+
+          hint:
+            '強み→具体的な経験→成果→応募先でどう活かすか',
+
+          keywords:
+            [
+              '強み',
+              '課題',
+              '改善',
+              '成果',
+              '協力'
+            ]
+
+        },
+
+        {
+          question:
+            '志望動機を教えてください。',
+
+          answer:
+            'これまでの経験を活かしながら、より大きな価値を提供できる環境で仕事をしたいと考え、志望しました。特に御社の事業内容と組織の考え方に魅力を感じています。これまで培ってきた経験を活かしつつ、新しい知識も積極的に吸収し、早期に貢献できるよう努力したいと考えています。',
+
+          category:
+            '志望動機',
+
+          hint:
+            'なぜこの会社なのか＋経験＋入社後の貢献',
+
+          keywords:
+            [
+              '経験',
+              '魅力',
+              '事業',
+              '貢献',
+              '成長'
+            ]
+
+        },
+
+        {
+          question:
+            'あなたの強みと弱みを教えてください。',
+
+          answer:
+            '強みは、最後まで責任を持って取り組むことです。一方で、弱みは一人で抱え込みすぎることがある点です。現在は、早い段階で周囲に相談することを意識し、チーム全体で効率よく問題を解決できるよう改善しています。',
+
+          category:
+            '強み・弱み',
+
+          hint:
+            '強みだけでなく弱み＋改善策まで答える',
+
+          keywords:
+            [
+              '強み',
+              '弱み',
+              '責任',
+              '相談',
+              '改善'
+            ]
+
+        }
+
+      ];
+
+
+      for (
+        const sample of samples
+      ) {
+
+        app.form = {
+
+          question:
+            sample.question,
+
+          answer:
+            sample.answer,
+
+          category:
+            sample.category,
+
+          hint:
+            sample.hint,
+
+          keywords:
+            sample.keywords.join(',')
+
+        };
+
+
+        app.addQuestion();
+
+      }
+
+
+      app.showToast(
+        'サンプル問題を登録しました'
+      );
+
+    }
+
+
+    /*
+     * ============================================================
+     * 開発用コンソールAPI
+     * ============================================================
+     *
+     * ブラウザのDevToolsから
+     *
+     *   interviewAppInstance()
+     *
+     * でアプリインスタンスを確認できます。
+     * ============================================================
+     */
+
+    window.interviewAppInstance =
+      function() {
+
+        const el =
+          document.querySelector(
+            '[x-data]'
+          );
+
+        if (
+          !el ||
+          !el._x_dataStack
+        ) {
+          return null;
+        }
+
+        return el._x_dataStack[0];
+
+      };
+
+  </script>
+
+
+  <!-- =========================================================
+       FOOTER
+       ========================================================= -->
+  <footer
+    class="no-print max-w-7xl mx-auto px-4 sm:px-6 pb-8 text-center text-xs text-slate-400"
+  >
+    <p>
+      MenQ
+      · PyScript / HTMX / Tailwind CSS / EaseMotion CSS /
+      Alpine.js / hyperscript / sql.js / php.js / LocalStorage
+    </p>
+
+    <p class="mt-1">
+      データは基本的にこのブラウザのLocalStorage内に保存されます。
+    </p>
+  </footer>
+
+
+  <!-- =========================================================
+       HTMX / hyperscript 補助
+       ========================================================= -->
+  <div
+    id="htmx-status"
+    hx-get="/"
+    hx-trigger="none"
+    class="hidden"
+  ></div>
+
+</body>
+</html>
